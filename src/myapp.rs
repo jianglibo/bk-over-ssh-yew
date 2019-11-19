@@ -1,11 +1,15 @@
 use crate::main_block::MainBlock;
 use crate::menu_block::MainMenu;
+use failure;
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use stdweb::web::Date;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter, EnumString};
+use yew::format::json::Json;
+use yew::services::fetch::{FetchService, Request, Response};
 use yew::services::{ConsoleService, IntervalService, Task, TimeoutService};
 use yew::{html, Callback, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
-use stdweb::web::Date;
 
 pub struct MyApp {
     scene: Scene,
@@ -14,9 +18,11 @@ pub struct MyApp {
     console: ConsoleService,
     callback_tick: Callback<()>,
     callback_done: Callback<()>,
+    callback_login: Callback<Response<Json<Result<LoginResult, failure::Error>>>>,
     job: Option<Box<dyn Task>>,
     messages: Vec<&'static str>,
     standalone: Option<Box<dyn Task>>,
+    fetcher: FetchService,
 }
 
 pub enum Msg {
@@ -26,12 +32,21 @@ pub enum Msg {
     Done,
     Tick,
     LogTime,
+    FetchResourceComplete(LoginResult),
+    FetchResourceFailed,
 }
 
 #[derive(Clone, Debug, Display, EnumString, EnumIter, PartialEq)]
 enum Scene {
     Login,
     UserList,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "result")]
+pub enum LoginResult {
+    Success,
+    Failed,
 }
 
 impl Component for MyApp {
@@ -48,9 +63,20 @@ impl Component for MyApp {
             console: ConsoleService::new(),
             callback_tick: link.send_back(|_| Msg::Tick),
             callback_done: link.send_back(|_| Msg::Done),
+            callback_login: link.send_back(
+                |response: Response<Json<Result<LoginResult, failure::Error>>>| {
+                    if let (meta, Json(Ok(body))) = response.into_parts() {
+                        if meta.status.is_success() {
+                            return Msg::FetchResourceComplete(body);
+                        }
+                    }
+                    Msg::FetchResourceFailed
+                },
+            ),
             job: None,
             messages: Vec::new(),
             standalone: None,
+            fetcher: FetchService::new(),
         };
 
         let c = link.send_back(|_| Msg::LogTime);
@@ -65,13 +91,22 @@ impl Component for MyApp {
         match msg {
             Msg::Tick => (),
             Msg::LogTime => {
+                let j = json!({"foo": "bar"});
+                let post_request = Request::post("/resource")
+                    .header("Content-Type", "application/json")
+                    .body(Json(&j))
+                    .expect("Failed to build request.");
+
+                let task = self
+                    .fetcher
+                    .fetch(post_request, self.callback_login.clone());
                 let scene = format!("{}", self.scene);
                 self.console.log(scene.as_str());
                 match self.scene {
                     Scene::UserList => self.scene = Scene::Login,
                     Scene::Login => self.scene = Scene::UserList,
                 }
-            },
+            }
             _ => self.console.log("hello"),
         }
         true
@@ -89,7 +124,6 @@ impl Component for MyApp {
                 <MainMenu/>
             </div>
 
-            <MainBlock/>
             { self.view_scene() }
         </div>
         }

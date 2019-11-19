@@ -1,6 +1,10 @@
 #![recursion_limit = "512"]
+
 #[macro_use]
 extern crate stdweb;
+
+#[macro_use]
+extern crate serde_json;
 
 mod app;
 mod utils;
