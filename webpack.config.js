@@ -18,7 +18,8 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new CopyWebpackPlugin([
-        { from: './static', to: distPath }
+        { from: './static', to: distPath },
+        { from: 'purecss/build/**/*min.css', to: distPath + '/purecss', context: './node_modules/', flatten: true }
       ]),
       new WasmPackPlugin({
         crateDirectory: ".",

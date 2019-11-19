@@ -114,10 +114,8 @@ impl Component for App {
         self.storage.store(KEY, Json(&self.state.entries));
         true
     }
-}
 
-impl Renderable<App> for App {
-    fn view(&self) -> Html<Self> {
+        fn view(&self) -> Html<Self> {
         info!("rendered!");
         html! {
             <div class="todomvc-wrapper">
@@ -153,7 +151,9 @@ impl Renderable<App> for App {
             </div>
         }
     }
+
 }
+
 
 impl App {
     fn view_filter(&self, filter: Filter) -> Html<App> {
