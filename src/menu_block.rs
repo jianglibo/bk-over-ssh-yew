@@ -1,7 +1,7 @@
-use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
-use yew::prelude::*;
-use yew::html::Children;
 use crate::Scene;
+use yew::html::Children;
+use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
 
 pub struct MainMenu {
     props: Props,
@@ -19,23 +19,35 @@ pub struct Props {
 }
 
 impl MainMenu {
-    fn get_item_classes(&self, scene: Scene) -> String {
-        let s = scene.clone().to_string();
-        let s1 = self.props.active_scene.clone().to_string();
-        js!{console.log("--" + @{s});};
-        js!{console.log("++" + @{s1});};
-        let c = if self.props.active_scene == scene {
+    fn get_item_classes(&self, scene: &Scene, divided: bool) -> String {
+        // let s = scene.clone().to_string();
+        // let s1 = self.props.active_scene.clone().to_string();
+        // js!{console.log("--" + @{s});};
+        // js!{console.log("++" + @{s1});};
+        let c = if &self.props.active_scene == scene {
             "pure-menu-item pure-menu-selected"
         } else {
             "pure-menu-item"
         };
-        c.to_string()
+        if divided {
+            format!("{} {}", c, "menu-item-divided")
+        } else {
+            c.to_string()
+        }
+    }
+
+    fn menu_item(&self, scene: Scene, divided: bool) -> Html<Self> {
+        let c = self.get_item_classes(&scene, divided);
+        let cloned = scene.clone();
+        html! {
+            <li class={c}>
+                <a href="#" class="pure-menu-link" onclick=|_|Msg::MenuItemClicked(scene.clone())>{cloned}</a>
+            </li>
+        }
     }
 }
 
-
 impl Component for MainMenu {
-
     type Message = Msg;
     type Properties = Props;
 
@@ -46,35 +58,42 @@ impl Component for MainMenu {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::MenuItemClicked(scene) => {
-                self.props.active_scene = scene.clone();
+                // self.props.active_scene = scene.clone();
                 self.props.on_menu_clicked.emit(scene);
             }
         }
         true
     }
+
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        js! {
+            console.log("props:" + @{props.active_scene.to_string()});
+        }
+        self.props = props;
+        true
+    }
+
     fn view(&self) -> Html<Self> {
         html! {
             <div class="pure-menu">
                 <a class="pure-menu-heading" href="#">{"Company"}</a>
 
                 <ul class="pure-menu-list">
-                    <li class="pure-menu-item">
-                        <a href="#" class="pure-menu-link">{"Home"}</a>
-                    </li>
-                    <li class="pure-menu-item">
-                        <a href="#" class={self.get_item_classes(Scene::InnerHtml)} onclick=|_|Msg::MenuItemClicked(Scene::InnerHtml)>{Scene::InnerHtml}</a>
-                    </li>
-                    // menu-item-divided
-                    <li class="pure-menu-item">
-                        <a href="#" class={self.get_item_classes(Scene::Home)} onclick=|_|Msg::MenuItemClicked(Scene::Home)>{Scene::Home}</a>
-                    </li>
-
-                    <li class="pure-menu-item">
-                        <a href="#" class={self.get_item_classes(Scene::Login)} onclick=|_|Msg::MenuItemClicked(Scene::Login)>{Scene::Login}</a>
-                    </li>
+                    {self.menu_item(Scene::Home, true)}
+                    {self.menu_item(Scene::Login, false)}
+                    {self.menu_item(Scene::InnerHtml, false)}
+                    // <li class="pure-menu-item">
+                    //     <a href="#" class={self.get_item_classes(Scene::Home)} onclick=|_|Msg::MenuItemClicked(Scene::Home)>{Scene::Home}</a>
+                    // </li>
+                    // <li class="pure-menu-item">
+                    //     <a href="#" class={self.get_item_classes(Scene::InnerHtml)} onclick=|_|Msg::MenuItemClicked(Scene::InnerHtml)>{Scene::InnerHtml}</a>
+                    // </li>
+                    // // menu-item-divided
+                    // <li class="pure-menu-item">
+                    //     <a href="#" class={self.get_item_classes(Scene::Login)} onclick=|_|Msg::MenuItemClicked(Scene::Login)>{Scene::Login}</a>
+                    // </li>
                 </ul>
             </div>
         }
     }
-
 }
