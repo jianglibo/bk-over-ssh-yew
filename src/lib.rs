@@ -9,13 +9,15 @@ extern crate serde_json;
 mod app;
 mod utils;
 mod menu_block;
-mod main_block;
 mod myapp;
 mod inner_html;
+mod pages;
 
 use wasm_bindgen::prelude::*;
 
 use stdweb::web::{document, IElement, INode, IParentNode};
+use strum::IntoEnumIterator;
+use strum_macros::{Display, EnumIter, EnumString};
 
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -36,4 +38,17 @@ pub fn run_app() -> Result<(), JsValue> {
     // yew::App::<app::App>::new().mount(mount_point);
     // yew::run_loop();
     Ok(())
+}
+
+#[derive(Clone, Debug, Display, EnumString, EnumIter, PartialEq)]
+pub enum Scene {
+    Login,
+    Home,
+    InnerHtml,
+}
+
+impl Default for Scene {
+    fn default() -> Self {
+        Scene::Home
+    }
 }

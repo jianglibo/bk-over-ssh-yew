@@ -1,5 +1,5 @@
 use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
-pub struct MainBlock {
+pub struct LoginPage {
 
 }
 
@@ -7,13 +7,13 @@ pub enum Msg {
     A
 }
 
-impl Component for MainBlock {
+impl Component for LoginPage {
 
     type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        MainBlock { }
+        LoginPage { }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -25,12 +25,6 @@ impl Component for MainBlock {
 
     fn view(&self) -> Html<Self> {
         html! {
-                    <div id="main">
-            <div class="header">
-                <h1>{"Page Title"}</h1>
-                <h2>{"A subtitle for your page goes here"}</h2>
-            </div>
-
             <div class="content">
                 <h2 class="content-subhead">{"How to use this layout"}</h2>
                 <div id="mount_point"></div>
@@ -68,7 +62,6 @@ impl Component for MainBlock {
                     "}
                 </p>
             </div>
-        </div>
         }
     }
 
