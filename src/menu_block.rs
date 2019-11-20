@@ -1,30 +1,41 @@
 use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
+use yew::prelude::*;
 pub struct MainMenu {
-
+    props: Props,
 }
 
 pub enum Msg {
-    A
+    A(String)
 }
+
+#[derive(Properties)]
+pub struct Props {
+    pub hide: bool,
+    #[props(required)]
+    pub name: String,
+}
+
 
 impl Component for MainMenu {
 
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        MainMenu { }
+    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+        MainMenu { props }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::A => (),
+            Msg::A(s) => {js!{
+                alert(@{s});
+            };},
         }
         true
     }
     fn view(&self) -> Html<Self> {
         html! {
-            <div class="pure-menu">
+            <div class="pure-menu" display={if self.props.hide { "none" } else {"block"}}>
                 <a class="pure-menu-heading" href="#">{"Company"}</a>
 
                 <ul class="pure-menu-list">
@@ -36,7 +47,7 @@ impl Component for MainMenu {
                         <a href="#" class="pure-menu-link">{"Services"}</a>
                     </li>
 
-                    <li class="pure-menu-item"><a href="#" class="pure-menu-link">{"Contact"}</a></li>
+                    <li class="pure-menu-item"><a href="#" class="pure-menu-link" onclick=|_|Msg::A("abc".to_string())>{"Contact"}</a></li>
                 </ul>
             </div>
         }

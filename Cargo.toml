@@ -17,7 +17,7 @@ strum_macros = "0.16.0"
 serde = "1"
 serde_json = "1"
 serde_derive = "1"
-wasm-bindgen = "0.2.54"
+wasm-bindgen = "0.2.55"
 web_logger = "0.2"
 yew = "0.10.0"
 stdweb = "0.4"
@@ -35,4 +35,4 @@ console_error_panic_hook = { version = "0.1.6", optional = true }
 wee_alloc = { version = "0.4.5", optional = true }
 
 [dev-dependencies]
-wasm-bindgen-test = "0.2"
+wasm-bindgen-test = "0.3.5"

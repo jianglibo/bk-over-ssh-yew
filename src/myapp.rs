@@ -124,7 +124,7 @@ impl Component for MyApp {
             </a>
 
             <div id="menu">
-                <MainMenu/>
+                <MainMenu name="MainMenu" hide={true}/>
             </div>
 
             { self.view_scene() }
@@ -138,7 +138,8 @@ impl MyApp {
         match self.scene {
             Scene::UserList => html! {<MainBlock/>},
             Scene::Login => html! {<p>{"waiting for implementation."}</p>},
-            Scene::InnerHtml => html!{<inner_html::Model/>},
+            // Scene::InnerHtml => html!{<inner_html::Model/>},
+            Scene::InnerHtml => html!{"inner html doens't work."},
         }
     }
 }

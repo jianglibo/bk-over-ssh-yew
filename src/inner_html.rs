@@ -28,16 +28,17 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html<Self> {
-        let js_svg = js! {
-            var div = document.createElement("div");
-            var dd = @{get_inner_html_str().to_string()};
-            console.log(dd);
-            div.innerHTML = dd;
-            console.log(div);
-            return div;
-        };
-        eprintln!("js_svg: {:?}", js_svg);
-        let node = Node::try_from(js_svg).expect("convert js_svg");
+        // let js_svg = js! {
+        //     var div = document.createElement("div");
+        //     var dd = @{get_inner_html_str().to_string()};
+        //     console.log(dd);
+        //     div.innerHTML = dd;
+        //     console.log(div);
+        //     return div;
+        // };
+        let node = Node::from_html(get_inner_html_str()).expect("js_svg from_html should success.");
+        // eprintln!("js_svg: {:?}", js_svg);
+        // let node = Node::try_from(js_svg).expect("convert js_svg");
         let vnode = VNode::VRef(node);
         eprintln!("svg: {:?}", vnode);
         vnode
