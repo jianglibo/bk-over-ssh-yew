@@ -11,6 +11,7 @@ mod utils;
 mod menu_block;
 mod main_block;
 mod myapp;
+mod inner_html;
 
 use wasm_bindgen::prelude::*;
 

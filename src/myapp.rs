@@ -1,5 +1,6 @@
 use crate::main_block::MainBlock;
 use crate::menu_block::MainMenu;
+use crate::inner_html;
 use failure;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -40,6 +41,7 @@ pub enum Msg {
 enum Scene {
     Login,
     UserList,
+    InnerHtml,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -80,7 +82,7 @@ impl Component for MyApp {
         };
 
         let c = link.send_back(|_| Msg::LogTime);
-        let handle = myapp.interval.spawn(Duration::from_secs(10), c);
+        let handle = myapp.interval.spawn(Duration::from_secs(3), c);
 
         myapp.standalone.replace(Box::new(handle));
 
@@ -104,7 +106,8 @@ impl Component for MyApp {
                 self.console.log(scene.as_str());
                 match self.scene {
                     Scene::UserList => self.scene = Scene::Login,
-                    Scene::Login => self.scene = Scene::UserList,
+                    Scene::Login => self.scene = Scene::InnerHtml,
+                    Scene::InnerHtml => self.scene = Scene::UserList,
                 }
             }
             _ => self.console.log("hello"),
@@ -135,6 +138,7 @@ impl MyApp {
         match self.scene {
             Scene::UserList => html! {<MainBlock/>},
             Scene::Login => html! {<p>{"waiting for implementation."}</p>},
+            Scene::InnerHtml => html!{<inner_html::Model/>},
         }
     }
 }
