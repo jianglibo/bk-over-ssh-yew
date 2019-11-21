@@ -1,10 +1,19 @@
 use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
-pub struct LoginPage {
+use yew::prelude::*;
+use yew::services::{ConsoleService, IntervalService, Task, TimeoutService};
+use stdweb::web::html_element::InputElement;
+use stdweb::web::event::{ClickEvent, IEvent, SubmitEvent};
+use super::request_otp_btn::RequestOtpBtn;
 
+pub struct LoginPage {
+    user_name: NodeRef,
+    otp: NodeRef,
+    console: ConsoleService,
 }
 
 pub enum Msg {
-    A
+    FormAboutSubmit(SubmitEvent),
+    RequestOtp,
 }
 
 impl Component for LoginPage {
@@ -13,12 +22,25 @@ impl Component for LoginPage {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        LoginPage { }
+        LoginPage {
+            user_name: NodeRef::default(),
+            otp: NodeRef::default(),
+            console: ConsoleService::new(),
+         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::A => (),
+            Msg::FormAboutSubmit(se) => {
+                se.prevent_default();
+                let user_name = self.user_name.try_into::<InputElement>().expect("it's a input element.");
+                self.console.log(&format!("{}", user_name.raw_value()));
+            },
+            Msg::RequestOtp => {
+                js! {
+                    console.log("abc");
+                }
+            },
         }
         true
     }
@@ -26,44 +48,29 @@ impl Component for LoginPage {
     fn view(&self) -> Html<Self> {
         html! {
             <div class="content">
-                <h2 class="content-subhead">{"How to use this layout"}</h2>
-                <div id="mount_point"></div>
-                <p>{"
-                    To use this layout, you can just copy paste the HTML, along with the CSS in "}<a href="/css/layouts/side-menu.css" alt="Side Menu
-                            CSS">{"side-menu.css"}</a>{", and the JavaScript in "}<a href="/js/ui.js">{"ui.js"}</a>{". The JS file uses vanilla JavaScript to simply toggle an <code>active</code> class that makes the menu responsive."}
-                </p>
+                <form class="pure-form pure-form-aligned" onsubmit= |e|Msg::FormAboutSubmit(e)>
+                    <fieldset>
 
-                <h2 class="content-subhead">{"Now Let's Speak Some Latin"}</h2>
-                <p>{"
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
-                    in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    "}
-                </p>
+                        <div class="pure-control-group">
+                            <label for="email">{"邮件地址"}</label>
+                            <input ref=self.user_name.clone() name="email_or_mobile" id="email" type="email" placeholder="Email Address"/>
+                            <span class="pure-form-message-inline">{"用来接收OTP"}</span>
+                        </div>
 
-                <div class="pure-g">
-                    <div class="pure-u-1-4">
-                        <img class="pure-img-responsive" src="http://farm3.staticflickr.com/2875/9069037713_1752f5daeb.jpg" alt="Peyto Lake"/>
-                    </div>
-                    <div class="pure-u-1-4">
-                        <img class="pure-img-responsive" src="http://farm3.staticflickr.com/2813/9069585985_80da8db54f.jpg" alt="Train"/>
-                    </div>
-                    <div class="pure-u-1-4">
-                        <img class="pure-img-responsive" src="http://farm6.staticflickr.com/5456/9121446012_c1640e42d0.jpg" alt="T-Shirt Store"/>
-                    </div>
-                    <div class="pure-u-1-4">
-                        <img class="pure-img-responsive" src="http://farm8.staticflickr.com/7357/9086701425_fda3024927.jpg" alt="Mountain"/>
-                    </div>
-                </div>
-
-                <h2 class="content-subhead">{"Try Resizing your Browser"}</h2>
-                <p>{"
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
-                    in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    "}
-                </p>
+                        <div class="pure-control-group">
+                            <label for="password">{"OTP(一次性密码)"}</label>
+                            <input ref=self.otp.clone() id="password" name="otp" type="password" placeholder="Password"/>
+                            <span class="pure-form-message-inline">
+                                <RequestOtpBtn delay_secs=180 on_request_otp=|_|Msg::RequestOtp/>
+                            </span>
+                        </div>
+                            <div class="pure-controls">
+                            <button type="submit" class="pure-button pure-button-primary">{"发送"}</button>
+                        </div>
+                    </fieldset>
+                </form>
             </div>
         }
     }
-
 }
 

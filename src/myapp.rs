@@ -139,8 +139,8 @@ impl Component for MyApp {
             </div>
             <div id="main">
             <div class="header">
-                <h1>{"Page Title"}</h1>
-                <h2>{"A subtitle for your page goes here"}</h2>
+                <h1>{self.get_title()}</h1>
+                <h2>{self.get_sub_title()}</h2>
             </div>
                 { self.view_scene() }
             </div>
@@ -154,8 +154,20 @@ impl MyApp {
         match self.scene {
             Scene::Home => html! {<pages::HomePage/>},
             Scene::Login => html! {<pages::LoginPage/>},
-            // Scene::InnerHtml => html!{<inner_html::Model/>},
-            Scene::InnerHtml => html!{"inner html doens't work."},
         }
+    }
+
+    fn get_title(&self) -> String {
+        match self.scene {
+            Scene::Home => "通过SSH备份文件",
+            Scene::Login => "登录系统",
+        }.into()
+    }
+
+    fn get_sub_title(&self) -> String {
+        match self.scene {
+            Scene::Home => "把你的服务器上的重要文件通过SSH备份到这里。",
+            Scene::Login => "不用注册，使用一次性密码登录系统",
+        }.into()
     }
 }
