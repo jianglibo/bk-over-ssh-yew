@@ -12,7 +12,6 @@ pub struct RequestOtpBtn {
     timeout_job: Option<Box<dyn Task>>,
     callback_done: Callback<()>,
     callback_tick: Callback<()>,
-    disabled: bool,
     count_down: u64,
 }
 
@@ -25,7 +24,7 @@ pub enum Msg {
 #[derive(Properties)]
 pub struct Props {
     #[props(required)]
-    pub on_request_otp: Callback<()>,
+    pub on_request_otp_start: Callback<()>,
     pub delay_secs: u64,
 }
 
@@ -47,9 +46,20 @@ impl Component for RequestOtpBtn {
             timeout_job: None,
             callback_done: link.send_back(|_| Msg::TimeUp),
             callback_tick: link.send_back(|_| Msg::Tick),
-            disabled: false,
             count_down: 0,
          }
+    }
+
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        if props.delay_secs == 0 {
+            self.count_down = 0;
+            if let Some(mut task) = self.job.take() {
+                task.cancel();
+            }
+            true
+        } else {
+            false
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -65,7 +75,6 @@ impl Component for RequestOtpBtn {
                         .timeout
                         .spawn(Duration::from_secs(self.props.delay_secs), self.callback_done.clone());
                 self.count_down = self.props.delay_secs;
-                self.disabled = true;
                 self.timeout_job.replace(Box::new(handle));
                 }
 
@@ -75,14 +84,12 @@ impl Component for RequestOtpBtn {
                         .spawn(Duration::from_secs(1), self.callback_tick.clone());
                     self.job = Some(Box::new(handle));
                 }
-
-                self.props.on_request_otp.emit(());
+                self.props.on_request_otp_start.emit(());
             },
             Msg::TimeUp => {
                 js! {
                     console.log("timeout");
                 }
-                self.disabled = false;
                 self.count_down = 0;
                 if let Some(mut task) = self.job.take() {
                     task.cancel();
@@ -102,7 +109,7 @@ impl Component for RequestOtpBtn {
 
     fn view(&self) -> Html<Self> {
         html! {
-            <button disabled=self.disabled onclick=|e|Msg::RequestOtp(e) type="button" class="pure-button">{self.get_count_down()}</button>
+            <button disabled={self.count_down > 0} onclick=|e|Msg::RequestOtp(e) type="button" class="pure-button">{self.get_count_down()}</button>
         }
     }
 }

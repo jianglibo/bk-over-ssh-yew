@@ -13,13 +13,13 @@ module.exports = (env, argv) => {
     entry: './bootstrap.js',
     output: {
       path: distPath,
-      filename: "todomvc.js",
-      webassemblyModuleFilename: "todomvc.wasm"
+      filename: "./static/todomvc.js",
+      webassemblyModuleFilename: "./static/todomvc.wasm"
     },
     plugins: [
       new CopyWebpackPlugin([
         { from: './static', to: distPath },
-        { from: 'purecss/build/**/*min.css', to: distPath + '/purecss', context: './node_modules/', flatten: true }
+        { from: 'purecss/build/**/*min.css', to: distPath + '/static/purecss', context: './node_modules/', flatten: true }
       ]),
       new WasmPackPlugin({
         crateDirectory: ".",

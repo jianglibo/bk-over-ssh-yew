@@ -1,5 +1,4 @@
-use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
-use stdweb::unstable::TryFrom;
+use yew::{Component, ComponentLink, Html, ShouldRender};
 use stdweb::web::Node;
 use yew::virtual_dom::VNode;
 

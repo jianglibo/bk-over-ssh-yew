@@ -27,3 +27,9 @@ yarn run start:dev
   for logging panic messages to the developer console.
 * [`wee_alloc`](https://github.com/rustwasm/wee_alloc), an allocator optimized
   for small code size.
+
+## copy dist
+```
+Copy-Item -Recurse -Force .\dist\static\ ..\bk-over-ssh-web
+Copy-Item -Force .\dist\index.html ..\bk-over-ssh-web\static
+```

@@ -1,5 +1,6 @@
-use yew::services::fetch::{FetchService, Request, Response};
+use yew::services::fetch::{Request};
 use serde::ser;
+use failure;
 
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -19,3 +20,8 @@ pub fn serialize<T>(req: Request<T>) -> serde_json::Result<Request<Result<String
     let body = serde_json::to_string(&body)?;
     Ok(Request::from_parts(parts, Ok(body)))
 }
+
+pub fn get_empty_body() -> Result<String, failure::Error> {
+    Ok("".to_owned())
+}
+

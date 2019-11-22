@@ -15,8 +15,6 @@ mod pages;
 
 use wasm_bindgen::prelude::*;
 
-use stdweb::web::{document, IElement, INode, IParentNode};
-use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter, EnumString};
 
 
