@@ -246,3 +246,19 @@ Hides the menu at `48em`, but modify this based on your app's needs.
         left: 150px;
     }
 }
+
+/*#1f8dd6, #d61f5a*/
+aside {
+    margin: 1em 0;
+    padding: 0.3em 1em;
+    border-radius: 3px;
+    color: #fff;
+}
+
+aside.blue {
+    background: #1f8dd6;
+}
+
+aside.red {
+    background: #d61f5a;
+}

@@ -16,6 +16,15 @@ pub struct LoginPage {
     fetcher: FetchService,
     callback_login: Callback<Response<Json<Result<LoginResult, failure::Error>>>>,
     fetch_task_holder: Option<FetchTask>,
+    timeout: TimeoutService,
+    timeout_job: Option<Box<dyn Task>>,
+    show_tip: bool,
+}
+
+impl LoginPage {
+    fn get_tip_message(&self) -> String {
+        "".to_string()
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -34,6 +43,8 @@ pub struct LoginFormData {
 pub enum Msg {
     FormAboutSubmit(SubmitEvent),
     RequestOtp,
+    RequestOtpFailed,
+    RequestOtpSuccess,
     LoginSuccess,
     LoginFailed,
 }
@@ -46,6 +57,7 @@ impl Component for LoginPage {
         LoginPage {
             user_name: NodeRef::default(),
             otp: NodeRef::default(),
+            timeout: TimeoutService::new(),
             console: ConsoleService::new(),
             callback_login: link.send_back(
                 |response: Response<Json<Result<LoginResult, failure::Error>>>| {
@@ -61,6 +73,8 @@ impl Component for LoginPage {
             ),
             fetcher: FetchService::new(),
             fetch_task_holder: None,
+            timeout_job: None,
+            show_tip: false,
         }
     }
 
@@ -102,6 +116,7 @@ impl Component for LoginPage {
             }
             Msg::LoginSuccess => {}
             Msg::LoginFailed => {}
+            _ => {}
         }
         true
     }
@@ -109,6 +124,11 @@ impl Component for LoginPage {
     fn view(&self) -> Html<Self> {
         html! {
             <div class="content">
+            <aside hidden=self.show_tip>
+        <p>
+            {self.get_tip_message()} {"adb"}
+        </p>
+    </aside>
                 <form class="pure-form pure-form-aligned" onsubmit= |e|Msg::FormAboutSubmit(e)>
                     <fieldset>
 
