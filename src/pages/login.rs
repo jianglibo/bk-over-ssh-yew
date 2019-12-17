@@ -6,8 +6,8 @@ use stdweb::web::event::{IEvent, SubmitEvent};
 use stdweb::web::html_element::InputElement;
 use yew::format::json::Json;
 use yew::prelude::*;
-use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::console::ConsoleService;
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct LoginPage {
@@ -140,17 +140,25 @@ impl Component for LoginPage {
             }
             Msg::RequestOtpStart => {
                 let form_data = self.get_login_form_data();
-                let body = utils::seriablizable_body(&form_data);
-                self.console.info(body.as_ref().unwrap());
-                let post_request = Request::post(self.props.otp_url.as_str())
-                    .header("Content-Type", "application/json")
-                    .body(body)
-                    .expect("Failed to build request.");
+                if form_data.email_or_mobile.len() < 6 || form_data.email_or_mobile.find('@').is_none() {
+                    self.message = (
+                        "请输入接受一次性密码的邮箱地址！",
+                        MessageType::Danger,
+                    );
+                    self.props.btn_disable_delay = 0;
+                } else {
+                    let body = utils::seriablizable_body(&form_data);
+                    self.console.info(body.as_ref().unwrap());
+                    let post_request = Request::post(self.props.otp_url.as_str())
+                        .header("Content-Type", "application/json")
+                        .body(body)
+                        .expect("Failed to build request.");
 
-                let task = self
-                    .fetcher
-                    .fetch(post_request, self.callback_request_otp.clone());
-                self.fetch_task_holder.replace(task);
+                    let task = self
+                        .fetcher
+                        .fetch(post_request, self.callback_request_otp.clone());
+                    self.fetch_task_holder.replace(task);
+                }
             }
             Msg::LoginSuccess => {}
             Msg::LoginFailed => {
