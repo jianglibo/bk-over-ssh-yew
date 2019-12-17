@@ -25,3 +25,7 @@ pub fn get_empty_body() -> Result<String, failure::Error> {
     Ok("".to_owned())
 }
 
+pub fn seriablizable_body<T>(body: &T) -> Result<String, failure::Error> where T: ser::Serialize {
+    let body = serde_json::to_string(body)?;
+    Ok(body)
+}

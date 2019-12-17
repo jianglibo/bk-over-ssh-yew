@@ -7,6 +7,7 @@ use stdweb::web::html_element::InputElement;
 use yew::format::json::Json;
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
+use yew::services::console::ConsoleService;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct LoginPage {
@@ -18,6 +19,7 @@ pub struct LoginPage {
     fetch_task_holder: Option<FetchTask>,
     message: (&'static str, MessageType),
     props: Props,
+    console: ConsoleService,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -47,6 +49,25 @@ pub struct Props {
     pub login_url: String,
     pub otp_url: String,
     pub btn_disable_delay: u64,
+}
+
+impl LoginPage {
+    fn get_login_form_data(&self) -> LoginFormData {
+        let email_or_mobile = self
+            .user_name
+            .try_into::<InputElement>()
+            .expect("user_name should be a input element.")
+            .raw_value();
+        let otp = self
+            .otp
+            .try_into::<InputElement>()
+            .expect("otp should be a input element.")
+            .raw_value();
+        LoginFormData {
+            email_or_mobile,
+            otp,
+        }
+    }
 }
 
 impl Component for LoginPage {
@@ -94,6 +115,7 @@ impl Component for LoginPage {
             fetcher: FetchService::new(),
             fetch_task_holder: None,
             message: ("", MessageType::Info),
+            console: ConsoleService::new(),
             props,
         }
     }
@@ -102,20 +124,7 @@ impl Component for LoginPage {
         match msg {
             Msg::FormAboutSubmit(se) => {
                 se.prevent_default();
-                let email_or_mobile = self
-                    .user_name
-                    .try_into::<InputElement>()
-                    .expect("user_name should be a input element.")
-                    .raw_value();
-                let otp = self
-                    .otp
-                    .try_into::<InputElement>()
-                    .expect("otp should be a input element.")
-                    .raw_value();
-                let data = LoginFormData {
-                    email_or_mobile,
-                    otp,
-                };
+                let data = self.get_login_form_data();
 
                 let post_request = Request::post(self.props.login_url.as_str())
                     .header("Content-Type", "application/json")
@@ -130,9 +139,12 @@ impl Component for LoginPage {
                 self.fetch_task_holder.replace(task);
             }
             Msg::RequestOtpStart => {
+                let form_data = self.get_login_form_data();
+                let body = utils::seriablizable_body(&form_data);
+                self.console.info(body.as_ref().unwrap());
                 let post_request = Request::post(self.props.otp_url.as_str())
                     .header("Content-Type", "application/json")
-                    .body(utils::get_empty_body())
+                    .body(body)
                     .expect("Failed to build request.");
 
                 let task = self
@@ -140,14 +152,18 @@ impl Component for LoginPage {
                     .fetch(post_request, self.callback_request_otp.clone());
                 self.fetch_task_holder.replace(task);
             }
-            Msg::LoginSuccess => {
-                
-            }
+            Msg::LoginSuccess => {}
             Msg::LoginFailed => {
-                self.message = ("密码错误，请确保输入了最新且没有过期的密码", MessageType::Danger);
+                self.message = (
+                    "密码错误，请确保输入了最新且没有过期的密码",
+                    MessageType::Danger,
+                );
             }
             Msg::RequestOtpSuccess => {
-                self.message = ("密码发送成功，请检查您的邮箱或者手机。", MessageType::Success);
+                self.message = (
+                    "密码发送成功，请检查您的邮箱或者手机。",
+                    MessageType::Success,
+                );
             }
             Msg::RequestOtpFailed => {
                 self.message = ("密码发送成功失败，请稍候尝试。", MessageType::Warning);
