@@ -2,6 +2,7 @@ const path = require('path');
 const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const distPath = path.resolve(__dirname, "dist");
 module.exports = (env, argv) => {
@@ -18,17 +19,18 @@ module.exports = (env, argv) => {
       webassemblyModuleFilename: "./static/bk-over-ssh.[hash].wasm"
     },
     plugins: [
-      new CopyWebpackPlugin([
-        { from: './static', to: distPath },
-        { from: 'purecss/build/**/*min.css', to: distPath + '/static/purecss', context: './node_modules/', flatten: true }
-      ]),
+      new CleanWebpackPlugin(),
       new WasmPackPlugin({
         crateDirectory: ".",
         extraArgs: "--no-typescript",
       }),
       new HtmlWebpackPlugin({
         template: "static/index.html"
-      })
+      }),
+      new CopyWebpackPlugin([
+        { from: './static', to: distPath },
+        { from: 'purecss/build/**/*min.css', to: distPath + '/static/purecss', context: './node_modules/', flatten: true }
+      ])
     ],
     watch: argv.mode !== 'production'
   };
