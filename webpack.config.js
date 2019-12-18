@@ -15,8 +15,8 @@ module.exports = (env, argv) => {
     entry: './bootstrap.js',
     output: {
       path: distPath,
-      filename: "./static/bk-over-ssh.[hash].js",
-      webassemblyModuleFilename: "./static/bk-over-ssh.[hash].wasm"
+      filename: "./static/bk-over-ssh.[hash].hashed.js",
+      webassemblyModuleFilename: "./static/bk-over-ssh.[hash].hashed.wasm"
     },
     plugins: [
       new CleanWebpackPlugin(),
