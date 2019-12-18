@@ -32,7 +32,8 @@ module.exports = (env, argv) => {
       }),
       new CopyWebpackPlugin([
         { from: './static/static', to: distPath + '/static/hashed/' + manually_version },
-        { from: 'purecss/build/**/*min.css', to: distPath + '/static/hashed/' + manually_version + '/purecss', context: './node_modules/', flatten: true }
+        { from: 'purecss/build/**/*min.css', to: distPath + '/static/hashed/' + manually_version + '/purecss', context: './node_modules/', flatten: true },
+        { from: 'jquery/dist/jquery.min.js', to: distPath + '/static/hashed/' + manually_version + '/jquery', context: './node_modules/', flatten: true }
       ])
     ],
     watch: argv.mode !== 'production'
