@@ -5,6 +5,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const distPath = path.resolve(__dirname, "dist");
+
+const manually_version = "20191218";
+
 module.exports = (env, argv) => {
   return {
     devServer: {
@@ -15,8 +18,8 @@ module.exports = (env, argv) => {
     entry: './bootstrap.js',
     output: {
       path: distPath,
-      filename: "./static/bk-over-ssh.[hash].hashed.js",
-      webassemblyModuleFilename: "./static/bk-over-ssh.[hash].hashed.wasm"
+      filename: "./static/hashed/bk-over-ssh.[hash].js",
+      webassemblyModuleFilename: "./static/hashed/bk-over-ssh.[hash].wasm"
     },
     plugins: [
       new CleanWebpackPlugin(),
@@ -28,8 +31,8 @@ module.exports = (env, argv) => {
         template: "static/index.html"
       }),
       new CopyWebpackPlugin([
-        { from: './static', to: distPath },
-        { from: 'purecss/build/**/*min.css', to: distPath + '/static/purecss', context: './node_modules/', flatten: true }
+        { from: './static/static', to: distPath + '/static/hashed/' + manually_version },
+        { from: 'purecss/build/**/*min.css', to: distPath + '/static/hashed/' + manually_version + '/purecss', context: './node_modules/', flatten: true }
       ])
     ],
     watch: argv.mode !== 'production'
