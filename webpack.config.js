@@ -1,6 +1,7 @@
 const path = require('path');
 const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const distPath = path.resolve(__dirname, "dist");
 module.exports = (env, argv) => {
@@ -13,8 +14,8 @@ module.exports = (env, argv) => {
     entry: './bootstrap.js',
     output: {
       path: distPath,
-      filename: "./static/todomvc.js",
-      webassemblyModuleFilename: "./static/todomvc.wasm"
+      filename: "./static/bk-over-ssh.[hash].js",
+      webassemblyModuleFilename: "./static/bk-over-ssh.[hash].wasm"
     },
     plugins: [
       new CopyWebpackPlugin([
@@ -24,6 +25,9 @@ module.exports = (env, argv) => {
       new WasmPackPlugin({
         crateDirectory: ".",
         extraArgs: "--no-typescript",
+      }),
+      new HtmlWebpackPlugin({
+        template: "static/index.html"
       })
     ],
     watch: argv.mode !== 'production'
