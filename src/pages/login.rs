@@ -15,18 +15,21 @@ pub struct LoginPage {
     otp: NodeRef,
     fetcher: FetchService,
     callback_login: Callback<Response<Json<Result<LoginResult, failure::Error>>>>,
-    callback_request_otp: Callback<Response<Result<String, failure::Error>>>,
+    callback_request_otp: Callback<Response<Json<Result<LoginResult, failure::Error>>>>,
     fetch_task_holder: Option<FetchTask>,
-    message: (&'static str, MessageType),
+    message: (String, MessageType),
     props: Props,
     console: ConsoleService,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "result")]
 pub enum LoginResult {
     Success,
     Failed,
+    OtpFirst,
+    OtpSendFailed,
+    OtpCreateUserFailed(String)
 }
 
 #[derive(Serialize)]
@@ -42,6 +45,9 @@ pub enum Msg {
     RequestOtpSuccess,
     LoginSuccess,
     LoginFailed,
+    LoginOtpFirst,
+    LoginOtpSendFailed,
+    LoginOtpCreateUserFailed(String)
 }
 
 #[derive(Properties)]
@@ -91,30 +97,41 @@ impl Component for LoginPage {
                 |response: Response<Json<Result<LoginResult, failure::Error>>>| {
                     if let (meta, Json(Ok(body))) = response.into_parts() {
                         if meta.status.is_success() {
-                            if let LoginResult::Success = body {
-                                return Msg::LoginSuccess;
+                            match body {
+                                LoginResult::Success => Msg::LoginSuccess,
+                                LoginResult::Failed => Msg::LoginFailed,
+                                LoginResult::OtpFirst => Msg::LoginOtpFirst,
+                                _ => panic!("Unexpected response: {:?}", body),
                             }
+                        } else {
+                            Msg::LoginFailed
                         }
+                    } else {
+                        Msg::LoginFailed
                     }
-                    Msg::LoginFailed
                 },
             ),
             callback_request_otp: link.send_back(
-                |response: Response<Result<String, failure::Error>>| {
-                    js! {
-                        console.log("yyyyy");
-                    }
-                    if let (meta, Ok(_body)) = response.into_parts() {
+                |response: Response<Json<Result<LoginResult, failure::Error>>>| {
+                    if let (meta, Json(Ok(body))) = response.into_parts() {
                         if meta.status.is_success() {
-                            return Msg::RequestOtpSuccess;
+                            match body {
+                                LoginResult::Success => Msg::RequestOtpSuccess,
+                                LoginResult::OtpSendFailed => Msg::LoginOtpSendFailed,
+                                LoginResult::OtpCreateUserFailed(email) => Msg::LoginOtpCreateUserFailed(email),
+                                _ => panic!("Unexpected response: {:?}", body),
+                            }
+                        } else {
+                            Msg::RequestOtpFailed
                         }
+                    } else {
+                        Msg::RequestOtpFailed
                     }
-                    Msg::RequestOtpFailed
                 },
             ),
             fetcher: FetchService::new(),
             fetch_task_holder: None,
-            message: ("", MessageType::Info),
+            message: ("".to_string(), MessageType::Info),
             console: ConsoleService::new(),
             props,
         }
@@ -142,7 +159,7 @@ impl Component for LoginPage {
                 let form_data = self.get_login_form_data();
                 if form_data.email_or_mobile.len() < 6 || form_data.email_or_mobile.find('@').is_none() {
                     self.message = (
-                        "请输入接受一次性密码的邮箱地址！",
+                        "请输入接受一次性密码的邮箱地址！".to_string(),
                         MessageType::Danger,
                     );
                     self.props.btn_disable_delay = 0;
@@ -161,20 +178,38 @@ impl Component for LoginPage {
                 }
             }
             Msg::LoginSuccess => {}
+            Msg::LoginOtpSendFailed => {
+                self.message = (
+                    "密码发送过程出错。".to_string(),
+                    MessageType::Danger,
+                );
+            }
+            Msg::LoginOtpCreateUserFailed(email) => {
+                self.message = (
+                    format!("无法创建用户: {}", email),
+                    MessageType::Danger,
+                );
+            }
+            Msg::LoginOtpFirst => {
+                self.message = (
+                    "请先获取一次性密码。".to_string(),
+                    MessageType::Danger,
+                );
+            }
             Msg::LoginFailed => {
                 self.message = (
-                    "密码错误，请确保输入了最新且没有过期的密码",
+                    "密码错误，请确保输入了最新且没有过期的密码".to_string(),
                     MessageType::Danger,
                 );
             }
             Msg::RequestOtpSuccess => {
                 self.message = (
-                    "密码发送成功，请检查您的邮箱或者手机。",
+                    "密码发送成功，请检查您的邮箱或者手机。".to_string(),
                     MessageType::Success,
                 );
             }
             Msg::RequestOtpFailed => {
-                self.message = ("密码发送成功失败，请稍候尝试。", MessageType::Warning);
+                self.message = ("密码发送失败，请稍候尝试。".to_string(), MessageType::Warning);
                 self.props.btn_disable_delay = 0;
             }
         }
@@ -184,7 +219,7 @@ impl Component for LoginPage {
     fn view(&self) -> Html<Self> {
         html! {
             <div class="content">
-                <MessageBox message=self.message.0 mtype=self.message.1.clone() delay_secs=5/>
+                <MessageBox message=self.message.0.as_str() mtype=self.message.1.clone() delay_secs=5/>
                 <form class="pure-form pure-form-aligned" onsubmit= |e|Msg::FormAboutSubmit(e)>
                     <fieldset>
 
