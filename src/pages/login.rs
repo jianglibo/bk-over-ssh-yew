@@ -27,9 +27,9 @@ pub struct LoginPage {
 pub enum LoginResult {
     Success,
     Failed,
-    OtpFirst,
+    OtpError,
     OtpSendFailed,
-    OtpCreateUserFailed(String)
+    OtpCreateUserFailed(String),
 }
 
 #[derive(Serialize)]
@@ -45,9 +45,9 @@ pub enum Msg {
     RequestOtpSuccess,
     LoginSuccess,
     LoginFailed,
-    LoginOtpFirst,
+    LoginOtpError,
     LoginOtpSendFailed,
-    LoginOtpCreateUserFailed(String)
+    LoginOtpCreateUserFailed(String),
 }
 
 #[derive(Properties)]
@@ -100,7 +100,7 @@ impl Component for LoginPage {
                             match body {
                                 LoginResult::Success => Msg::LoginSuccess,
                                 LoginResult::Failed => Msg::LoginFailed,
-                                LoginResult::OtpFirst => Msg::LoginOtpFirst,
+                                LoginResult::OtpError => Msg::LoginOtpError,
                                 _ => panic!("Unexpected response: {:?}", body),
                             }
                         } else {
@@ -118,7 +118,9 @@ impl Component for LoginPage {
                             match body {
                                 LoginResult::Success => Msg::RequestOtpSuccess,
                                 LoginResult::OtpSendFailed => Msg::LoginOtpSendFailed,
-                                LoginResult::OtpCreateUserFailed(email) => Msg::LoginOtpCreateUserFailed(email),
+                                LoginResult::OtpCreateUserFailed(email) => {
+                                    Msg::LoginOtpCreateUserFailed(email)
+                                }
                                 _ => panic!("Unexpected response: {:?}", body),
                             }
                         } else {
@@ -143,21 +145,29 @@ impl Component for LoginPage {
                 se.prevent_default();
                 let data = self.get_login_form_data();
 
-                let post_request = Request::post(self.props.login_url.as_str())
-                    .header("Content-Type", "application/json")
-                    .body(data)
-                    .expect("Failed to build request.");
+                if data.email_or_mobile.trim().is_empty() {
+                    self.message = ("请输入邮件地址。".to_string(), MessageType::Danger);
+                } else if data.otp.trim().is_empty() {
+                    self.message = ("请输入一次性密码。".to_string(), MessageType::Danger);
+                } else {
+                    let post_request = Request::post(self.props.login_url.as_str())
+                        .header("Content-Type", "application/json")
+                        .body(data)
+                        .expect("Failed to build request.");
 
-                let post_request =
-                    utils::serialize(post_request).expect("should serialize request.");
-                let task = self
-                    .fetcher
-                    .fetch(post_request, self.callback_login.clone());
-                self.fetch_task_holder.replace(task);
+                    let post_request =
+                        utils::serialize(post_request).expect("should serialize request.");
+                    let task = self
+                        .fetcher
+                        .fetch(post_request, self.callback_login.clone());
+                    self.fetch_task_holder.replace(task);
+                }
             }
             Msg::RequestOtpStart => {
                 let form_data = self.get_login_form_data();
-                if form_data.email_or_mobile.len() < 6 || form_data.email_or_mobile.find('@').is_none() {
+                if form_data.email_or_mobile.len() < 6
+                    || form_data.email_or_mobile.find('@').is_none()
+                {
                     self.message = (
                         "请输入接受一次性密码的邮箱地址！".to_string(),
                         MessageType::Danger,
@@ -179,22 +189,13 @@ impl Component for LoginPage {
             }
             Msg::LoginSuccess => {}
             Msg::LoginOtpSendFailed => {
-                self.message = (
-                    "密码发送过程出错。".to_string(),
-                    MessageType::Danger,
-                );
+                self.message = ("密码发送过程出错。".to_string(), MessageType::Danger);
             }
             Msg::LoginOtpCreateUserFailed(email) => {
-                self.message = (
-                    format!("无法创建用户: {}", email),
-                    MessageType::Danger,
-                );
+                self.message = (format!("无法创建用户: {}", email), MessageType::Danger);
             }
-            Msg::LoginOtpFirst => {
-                self.message = (
-                    "请先获取一次性密码。".to_string(),
-                    MessageType::Danger,
-                );
+            Msg::LoginOtpError => {
+                self.message = ("一次性密码错误。".to_string(), MessageType::Danger);
             }
             Msg::LoginFailed => {
                 self.message = (
@@ -209,7 +210,10 @@ impl Component for LoginPage {
                 );
             }
             Msg::RequestOtpFailed => {
-                self.message = ("密码发送失败，请稍候尝试。".to_string(), MessageType::Warning);
+                self.message = (
+                    "密码发送失败，请稍候尝试。".to_string(),
+                    MessageType::Warning,
+                );
                 self.props.btn_disable_delay = 0;
             }
         }
