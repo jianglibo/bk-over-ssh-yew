@@ -62,6 +62,7 @@ impl MyApp {
         match self.scene {
             Scene::Home => html! {<pages::HomePage/>},
             Scene::Login => html! {<pages::LoginPage/>},
+            Scene::Accounts => html! {<pages::AccountsPage/>},
         }
     }
 
@@ -69,6 +70,7 @@ impl MyApp {
         match self.scene {
             Scene::Home => "通过SSH备份文件",
             Scene::Login => "登录系统",
+            Scene::Accounts => "备份账号",
         }.into()
     }
 
@@ -76,6 +78,7 @@ impl MyApp {
         match self.scene {
             Scene::Home => "把你的服务器上的重要文件通过SSH备份到这里。",
             Scene::Login => "不用注册，使用一次性密码登录系统",
+            Scene::Accounts => "备份账号列表。",
         }.into()
     }
 }

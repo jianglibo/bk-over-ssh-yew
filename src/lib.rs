@@ -42,6 +42,7 @@ pub fn run_app() -> Result<(), JsValue> {
 pub enum Scene {
     Login,
     Home,
+    Accounts,
 }
 
 impl Default for Scene {

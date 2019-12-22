@@ -74,6 +74,7 @@ impl Component for MainMenu {
                 <ul class="pure-menu-list">
                     {self.menu_item(Scene::Home, true)}
                     {self.menu_item(Scene::Login, false)}
+                    {self.menu_item(Scene::Accounts, false)}
                 </ul>
             </div>
         }

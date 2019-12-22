@@ -7,7 +7,7 @@ use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
 use yew::{html, Component, ComponentLink, Href, Html, ShouldRender};
 
-const KEY: &'static str = "yew.todomvc.self";
+const KEY: &str = "yew.todomvc.self";
 
 pub struct App {
     storage: StorageService,
