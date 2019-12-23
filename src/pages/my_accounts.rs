@@ -33,6 +33,7 @@ struct BkAccount {
     id: u64,
     username: String,
     userpass: String,
+    account_id: u64,
     created_at: DateTime<chrono::Local>,
 }
 

@@ -1,11 +1,9 @@
-use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 pub struct HomePage {
 
 }
 
-pub enum Msg {
-    A
-}
+pub enum Msg {}
 
 impl Component for HomePage {
 
@@ -16,10 +14,7 @@ impl Component for HomePage {
         HomePage { }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::A => (),
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         true
     }
 

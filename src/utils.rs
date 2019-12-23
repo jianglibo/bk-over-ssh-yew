@@ -21,6 +21,7 @@ pub fn serialize<T>(req: Request<T>) -> serde_json::Result<Request<Result<String
     Ok(Request::from_parts(parts, Ok(body)))
 }
 
+#[allow(dead_code)]
 pub fn get_empty_body() -> Result<String, failure::Error> {
     Ok("".to_owned())
 }
