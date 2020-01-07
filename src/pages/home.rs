@@ -18,7 +18,7 @@ impl Component for HomePage {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div class="content">
                 <h2 class="content-subhead">{"如何使用？"}</h2>

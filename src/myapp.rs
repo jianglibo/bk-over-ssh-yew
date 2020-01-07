@@ -5,6 +5,7 @@ use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct MyApp {
     scene: Scene,
+    link: ComponentLink<Self>,
 }
 
 pub enum Msg {
@@ -15,9 +16,10 @@ impl Component for MyApp {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         MyApp {
             scene: Scene::Home,
+            link,
         }
     }
 
@@ -32,7 +34,7 @@ impl Component for MyApp {
         }
         true
     }
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div id="layout">
             // <!-- Menu toggle -->
@@ -43,7 +45,7 @@ impl Component for MyApp {
 
             <div id="menu">
                 // maybe one time setting from parent to child.
-                <MainMenu active_scene={self.scene.clone()} on_menu_clicked=|scene|Msg::Scene(scene)/>
+                <MainMenu active_scene={self.scene.clone()} on_menu_clicked=self.link.callback(|scene|Msg::Scene(scene))/>
             </div>
             <div id="main">
             <div class="header">
@@ -58,7 +60,7 @@ impl Component for MyApp {
 }
 
 impl MyApp {
-    fn view_scene(&self) -> Html<Self> {
+    fn view_scene(&self) -> Html {
         match self.scene {
             Scene::Home => html! {<pages::HomePage/>},
             Scene::Login => html! {<pages::LoginPage/>},

@@ -5,13 +5,14 @@ use strum_macros::{EnumIter, ToString};
 use yew::events::IKeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
-use yew::{html, Component, ComponentLink, Href, Html, ShouldRender};
+use yew::{html, Component, ComponentLink, Href, Html, InputData, KeyPressEvent, ShouldRender};
 
 const KEY: &str = "yew.todomvc.self";
 
 pub struct App {
     storage: StorageService,
     state: State,
+    link: ComponentLink<Self>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -47,7 +48,7 @@ impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let storage = StorageService::new(Area::Local);
         let entries = {
             if let Json(Ok(restored_entries)) = storage.restore(KEY) {
@@ -62,7 +63,11 @@ impl Component for App {
             value: "".into(),
             edit_value: "".into(),
         };
-        App { storage, state }
+        App {
+            storage,
+            state,
+            link,
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -115,8 +120,10 @@ impl Component for App {
         true
     }
 
-        fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         info!("rendered!");
+        let on_toggle_all_click = self.link.callback(|_| Msg::ToggleAll);
+        let on_clear_click = self.link.callback(|_| Msg::ClearCompleted);
         html! {
             <div class="todomvc-wrapper">
                 <section class="todoapp">
@@ -125,9 +132,9 @@ impl Component for App {
                         { self.view_input() }
                     </header>
                     <section class="main">
-                        <input class="toggle-all" type="checkbox" checked=self.state.is_all_completed() onclick=|_| Msg::ToggleAll />
+                        <input class="toggle-all" type="checkbox" checked=self.state.is_all_completed() onclick=on_toggle_all_click />
                         <ul class="todo-list">
-                            { for self.state.entries.iter().filter(|e| self.state.filter.fit(e)).enumerate().map(view_entry) }
+                            { for self.state.entries.iter().filter(|e| self.state.filter.fit(e)).enumerate().map(|e|self.view_entry(e)) }
                         </ul>
                     </section>
                     <footer class="footer">
@@ -138,7 +145,7 @@ impl Component for App {
                         <ul class="filters">
                             { for Filter::iter().map(|flt| self.view_filter(flt)) }
                         </ul>
-                        <button class="clear-completed" onclick=|_| Msg::ClearCompleted>
+                        <button class="clear-completed" onclick=on_clear_click>
                             { format!("Clear completed ({})", self.state.total_completed()) }
                         </button>
                     </footer>
@@ -151,35 +158,35 @@ impl Component for App {
             </div>
         }
     }
-
 }
 
-
 impl App {
-    fn view_filter(&self, filter: Filter) -> Html<App> {
+    fn view_filter(&self, filter: Filter) -> Html {
+        let flt = filter.clone();
+        let onclick = self.link.callback(move |_| Msg::SetFilter(flt.clone()));
         let flt = filter.clone();
         html! {
             <li>
                 <a class=if self.state.filter == flt { "selected" } else { "not-selected" }
                    href=&flt
-                   onclick=|_| Msg::SetFilter(flt.clone())>
+                   onclick=onclick>
                     { filter }
                 </a>
             </li>
         }
     }
 
-    fn view_input(&self) -> Html<App> {
+    fn view_input(&self) -> Html {
         html! {
             // You can use standard Rust comments. One line:
             // <li></li>
             <input class="new-todo"
                    placeholder="What needs to be done?"
                    value=&self.state.value
-                   oninput=|e| Msg::Update(e.value)
-                   onkeypress=|e| {
+                                      oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
+                   onkeypress=self.link.callback(|e: KeyPressEvent| {
                        if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
-                   } />
+                   }) />
             /* Or multiline:
             <ul>
                 <li></li>
@@ -187,45 +194,44 @@ impl App {
             */
         }
     }
-}
 
-fn view_entry((idx, entry): (usize, &Entry)) -> Html<App> {
-    let mut class = "todo".to_string();
-    if entry.editing {
-        class.push_str(" editing");
-    }
-    if entry.completed {
-        class.push_str(" completed");
-    }
-    html! {
-        <li class=class>
-            <div class="view">
-                <input class="toggle" type="checkbox" checked=entry.completed onclick=|_| Msg::Toggle(idx) />
-                <label ondoubleclick=|_| Msg::ToggleEdit(idx)>{ &entry.description }</label>
-                <button class="destroy" onclick=|_| Msg::Remove(idx) />
-            </div>
-            { view_entry_edit_input((idx, &entry)) }
-        </li>
-    }
-}
-
-fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<App> {
-    if entry.editing {
-        html! {
-            <input class="edit"
-                   type="text"
-                   value=&entry.description
-                   oninput=|e| Msg::UpdateEdit(e.value)
-                   onblur=|_| Msg::Edit(idx)
-                   onkeypress=|e| {
-                      if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
-                   } />
+    fn view_entry(&self, (idx, entry): (usize, &Entry)) -> Html {
+        let mut class = "todo".to_string();
+        if entry.editing {
+            class.push_str(" editing");
         }
-    } else {
-        html! { <input type="hidden" /> }
+        if entry.completed {
+            class.push_str(" completed");
+        }
+        html! {
+            <li class=class>
+                <div class="view">
+                    <input class="toggle" type="checkbox" checked=entry.completed  onclick=self.link.callback(move |_| Msg::Toggle(idx)) />
+                    <label ondoubleclick=self.link.callback(move |_| Msg::ToggleEdit(idx))>{ &entry.description }</label>
+                    <button class="destroy" onclick=self.link.callback(move |_| Msg::Remove(idx)) />
+                </div>
+                { self.view_entry_edit_input((idx, &entry)) }
+            </li>
+        }
+    }
+
+    fn view_entry_edit_input(&self, (idx, entry): (usize, &Entry)) -> Html {
+        if entry.editing {
+            html! {
+                <input class="edit"
+                       type="text"
+                       value=&entry.description
+                                              oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
+                           onblur=self.link.callback(move |_| Msg::Edit(idx))
+                           onkeypress=self.link.callback(move |e: KeyPressEvent| {
+                              if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
+                           }) />
+            }
+        } else {
+            html! { <input type="hidden" /> }
+        }
     }
 }
-
 #[derive(EnumIter, ToString, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Filter {
     All,

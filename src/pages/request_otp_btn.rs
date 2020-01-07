@@ -13,6 +13,7 @@ pub struct RequestOtpBtn {
     callback_done: Callback<()>,
     callback_tick: Callback<()>,
     count_down: u64,
+    link: ComponentLink<Self>,
 }
 
 pub enum Msg {
@@ -21,7 +22,7 @@ pub enum Msg {
     Tick,
 }
 
-#[derive(Properties)]
+#[derive(Properties, Clone)]
 pub struct Props {
     #[props(required)]
     pub on_request_otp_start: Callback<()>,
@@ -44,9 +45,10 @@ impl Component for RequestOtpBtn {
             interval: IntervalService::new(),
             job: None,
             timeout_job: None,
-            callback_done: link.send_back(|_| Msg::TimeUp),
-            callback_tick: link.send_back(|_| Msg::Tick),
+            callback_done: link.callback(|_| Msg::TimeUp),
+            callback_tick: link.callback(|_| Msg::Tick),
             count_down: 0,
+            link,
          }
     }
 
@@ -107,9 +109,9 @@ impl Component for RequestOtpBtn {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
-            <button disabled={self.count_down > 0} onclick=|e|Msg::RequestOtp(e) type="button" class="pure-button">{self.get_count_down()}</button>
+            <button disabled={self.count_down > 0} onclick=self.link.callback(|e|Msg::RequestOtp(e)) type="button" class="pure-button">{self.get_count_down()}</button>
         }
     }
 }

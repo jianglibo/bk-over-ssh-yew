@@ -26,7 +26,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         // let js_svg = js! {
         //     var div = document.createElement("div");
         //     var dd = @{get_inner_html_str().to_string()};

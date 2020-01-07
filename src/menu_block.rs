@@ -4,13 +4,14 @@ use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct MainMenu {
     props: Props,
+    link: ComponentLink<Self>,
 }
 
 pub enum Msg {
     MenuItemClicked(Scene),
 }
 
-#[derive(Properties)]
+#[derive(Properties, Clone)]
 pub struct Props {
     #[props(required)]
     pub on_menu_clicked: Callback<Scene>,
@@ -31,12 +32,12 @@ impl MainMenu {
         }
     }
 
-    fn menu_item(&self, scene: Scene, divided: bool) -> Html<Self> {
+    fn menu_item(&self, scene: Scene, divided: bool) -> Html {
         let c = self.get_item_classes(&scene, divided);
         let cloned = scene.clone();
         html! {
             <li class={c}>
-                <a href="#" class="pure-menu-link" onclick=|_|Msg::MenuItemClicked(scene.clone())>{cloned}</a>
+                <a href="#" class="pure-menu-link" onclick=self.link.callback(move |_|Msg::MenuItemClicked(scene.clone()))>{cloned}</a>
             </li>
         }
     }
@@ -46,8 +47,8 @@ impl Component for MainMenu {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        MainMenu { props }
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        MainMenu { props, link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -67,7 +68,7 @@ impl Component for MainMenu {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div class="pure-menu">
                 <a class="pure-menu-heading" href="#">{"Company"}</a>

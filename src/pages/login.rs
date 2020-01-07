@@ -20,6 +20,7 @@ pub struct LoginPage {
     message: (String, MessageType),
     props: Props,
     console: ConsoleService,
+    link: ComponentLink<Self>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -50,7 +51,7 @@ pub enum Msg {
     LoginOtpCreateUserFailed(String),
 }
 
-#[derive(Properties)]
+#[derive(Properties, Clone)]
 pub struct Props {
     pub login_url: String,
     pub otp_url: String,
@@ -93,7 +94,7 @@ impl Component for LoginPage {
         LoginPage {
             user_name: NodeRef::default(),
             otp: NodeRef::default(),
-            callback_login: link.send_back(
+            callback_login: link.callback(
                 |response: Response<Json<Result<LoginResult, failure::Error>>>| {
                     if let (meta, Json(Ok(body))) = response.into_parts() {
                         if meta.status.is_success() {
@@ -111,7 +112,7 @@ impl Component for LoginPage {
                     }
                 },
             ),
-            callback_request_otp: link.send_back(
+            callback_request_otp: link.callback(
                 |response: Response<Json<Result<LoginResult, failure::Error>>>| {
                     if let (meta, Json(Ok(body))) = response.into_parts() {
                         if meta.status.is_success() {
@@ -136,6 +137,7 @@ impl Component for LoginPage {
             message: ("".to_string(), MessageType::Info),
             console: ConsoleService::new(),
             props,
+            link,
         }
     }
 
@@ -220,11 +222,12 @@ impl Component for LoginPage {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
+        let onsubmit = self.link.callback(|e| Msg::FormAboutSubmit(e));
         html! {
             <div class="content">
                 <MessageBox message=self.message.0.as_str() mtype=self.message.1.clone() delay_secs=5/>
-                <form class="pure-form pure-form-aligned" onsubmit= |e|Msg::FormAboutSubmit(e)>
+                <form class="pure-form pure-form-aligned" onsubmit= onsubmit>
                     <fieldset>
 
                         <div class="pure-control-group">
@@ -237,7 +240,7 @@ impl Component for LoginPage {
                             <label for="password">{"OTP(一次性密码)"}</label>
                             <input ref=self.otp.clone() id="password" name="otp" type="password" placeholder="Password"/>
                             <span class="pure-form-message-inline">
-                                <RequestOtpBtn delay_secs=self.props.btn_disable_delay on_request_otp_start=|_|Msg::RequestOtpStart/>
+                                <RequestOtpBtn delay_secs=self.props.btn_disable_delay on_request_otp_start=self.link.callback(|_|Msg::RequestOtpStart)/>
                             </span>
                         </div>
                             <div class="pure-controls">

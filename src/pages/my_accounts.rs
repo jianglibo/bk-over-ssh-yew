@@ -45,7 +45,7 @@ impl Component for AccountsPage {
         let state = State { entries: vec![] };
         let mut ap = AccountsPage {
             state,
-            callback_fetch_bk_account: link.send_back(
+            callback_fetch_bk_account: link.callback(
                 |response: Response<Json<Result<Vec<BkAccount>, failure::Error>>>| {
                     if let (meta, Json(Ok(body))) = response.into_parts() {
                         if meta.status.is_success() {
@@ -58,7 +58,7 @@ impl Component for AccountsPage {
                     }
                 },
             ),
-            callback_change_password: link.send_back(
+            callback_change_password: link.callback(
                 |response: Response<Json<Result<BkAccount, failure::Error>>>| {
                     if let (meta, Json(Ok(body))) = response.into_parts() {
                         if meta.status.is_success() {
@@ -94,7 +94,7 @@ impl Component for AccountsPage {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
         <div class="content">
         <table class="pure-table pure-table-bordered" style="width:100%;">
@@ -119,7 +119,7 @@ impl Component for AccountsPage {
 }
 
 impl AccountsPage {
-    fn view_account(&self, (idx, account): (usize, &BkAccount)) -> Html<Self> {
+    fn view_account(&self, (idx, account): (usize, &BkAccount)) -> Html {
         let mut class = "todo".to_string();
         // if entry.editing {
         //     class.push_str(" editing");
